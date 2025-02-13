@@ -40,6 +40,11 @@ jobs:
         Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp &  # La flag '-nolisten tcp' evita i problemi di Xauthority
         export DISPLAY=:99
 
+    - name: Create a unique user data directory for Chrome
+      run: |
+        # Crea una directory temporanea unica per i dati utente di Chrome
+        mkdir -p $HOME/chrome_user_data_$GITHUB_RUN_ID  # Usa l'ID del run per la directory unica
+        echo "Using directory: $HOME/chrome_user_data_$GITHUB_RUN_ID"
     - name: Run script
       run: |
         python scraper.py
@@ -50,6 +55,7 @@ jobs:
         INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
         OPENAIKEY: ${{ secrets.OPENAIKEY }}
         CHROMEDRIVER_PATH: "/usr/local/bin/chromedriver"
+        USER_DATA_DIR: $HOME/chrome_user_data_$GITHUB_RUN_ID  # Passa la directory unica di dati utente
 
 
 
