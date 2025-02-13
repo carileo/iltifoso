@@ -50,6 +50,8 @@ class InstagramBot:
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
 
         self.wait = WebDriverWait(self.driver, 20)
+        print("Browser initialized successfully")
+
     def login(self):
         try:
             # Carica la pagina di login
@@ -66,9 +68,12 @@ class InstagramBot:
                 pass
 
             # Login
+            print("Looking for username field...")
             username_input = self.wait.until(EC.presence_of_element_located((By.NAME, 'username')))
+            print("OK username field...")
+            print("Looking for PASSWORD field...")
             password_input = self.wait.until(EC.presence_of_element_located((By.NAME, 'password')))
-
+            print("OK PASSWORD field...")
             # Simula input umano
             for char in self.username:
                 username_input.send_keys(char)
@@ -82,63 +87,78 @@ class InstagramBot:
             # Click sul pulsante di login
             login_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']")))
             self.driver.execute_script("arguments[0].click();", login_button)
-
+            print("Clicking login button...")
             time.sleep(10)  # Attesa per il completamento del login
-
+            print("Login completed")
         except Exception as e:
             print(f"Errore durante il login: {str(e)}")
             self.driver.save_screenshot("login_error.png")
             raise
 
+
     def publish_post(self, image_path, caption):
         try:
+            print("Starting post creation...")
             self.driver.get('https://www.instagram.com')
             time.sleep(5)
 
-            # Click sull'icona per creare nuovo post
-            create_post_button = self.wait.until(EC.element_to_be_clickable(
-                (By.XPATH, "//span[contains(@class, 'x1lliihq')]//*[local-name()='svg' and @aria-label='New post']")))
+            print("Looking for create post button...")
+            self.driver.save_screenshot("before_create_post.png")
+
+            # Try different selectors for the create post button
+            try:
+                create_post_button = self.wait.until(EC.element_to_be_clickable(
+                    (By.XPATH,
+                     "//span[contains(@class, 'x1lliihq')]//*[local-name()='svg' and @aria-label='New post']")))
+            except:
+                print("First selector failed, trying alternative...")
+                create_post_button = self.wait.until(EC.element_to_be_clickable(
+                    (By.CSS_SELECTOR, "[aria-label='New post']")))
+
+            print("Found create post button, clicking...")
             self.driver.execute_script("arguments[0].click();", create_post_button)
             time.sleep(3)
 
-            # Seleziona tipo post
+            self.driver.save_screenshot("after_create_button.png")
+
+            print("Selecting post type...")
             post_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Post']")))
             self.driver.execute_script("arguments[0].click();", post_button)
             time.sleep(3)
 
-            # Upload immagine
+            print("Preparing to upload image...")
             file_input = self.wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='file']")))
             self.driver.execute_script("arguments[0].style.display = 'block';", file_input)
 
-            # Usa il percorso assoluto dell'immagine
             absolute_path = os.path.abspath(image_path)
+            print(f"Uploading image from: {absolute_path}")
             file_input.send_keys(absolute_path)
             time.sleep(5)
 
-            # Click sui pulsanti Next
-            for _ in range(2):
+            print("Clicking through Next buttons...")
+            for i in range(2):
                 next_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Next']")))
                 self.driver.execute_script("arguments[0].click();", next_button)
                 time.sleep(3)
+                self.driver.save_screenshot(f"after_next_{i}.png")
 
-            # Inserisci caption
+            print("Adding caption...")
             caption_input = self.wait.until(EC.element_to_be_clickable(
                 (By.XPATH, "//div[@aria-label='Write a caption...' and @contenteditable='true']")))
             self.driver.execute_script("arguments[0].click();", caption_input)
-
-            # Simula input umano per la caption
-            for char in caption:
-                caption_input.send_keys(char)
-                time.sleep(0.05)
+            caption_input.send_keys(caption)
             time.sleep(2)
 
-            # Condividi post
+            print("Sharing post...")
             share_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Share']")))
             self.driver.execute_script("arguments[0].click();", share_button)
             time.sleep(10)
 
+            print("Post published successfully!")
+            self.driver.save_screenshot("post_success.png")
+
         except Exception as e:
-            print(f"Errore durante la pubblicazione: {str(e)}")
+            print(f"Failed to publish post: {str(e)}")
             self.driver.save_screenshot("post_error.png")
             raise
 
