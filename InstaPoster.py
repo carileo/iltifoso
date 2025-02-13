@@ -52,7 +52,7 @@ class InstagramBot:
         """Pubblica un post con l'immagine e la didascalia fornita"""
         # Vai alla home per assicurarti di essere loggato
         self.driver.get("https://www.instagram.com/")
-        time.sleep(5)
+        time.sleep(10)
 
         # Clicca sull'icona "+" per creare un nuovo post
         upload_icon = self.driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]')
