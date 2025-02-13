@@ -42,7 +42,6 @@ jobs:
 
     - name: Create a unique user data directory for Chrome
       run: |
-        # Crea una directory temporanea unica per i dati utente di Chrome
         mkdir -p $HOME/chrome_user_data_$GITHUB_RUN_ID  # Usa l'ID del run per la directory unica
         echo "Using directory: $HOME/chrome_user_data_$GITHUB_RUN_ID"
     - name: Run script
