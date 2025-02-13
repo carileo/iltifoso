@@ -1,11 +1,15 @@
 import os
 import re
+from selenium.webdriver.support import expected_conditions as EC
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 import time
+
+from selenium.webdriver.support.wait import WebDriverWait
+
 
 class InstagramBot:
     def __init__(self, chromedriver_path, username, password):
@@ -24,79 +28,119 @@ class InstagramBot:
 
         # Crea un oggetto ChromeOptions per impostazioni specifiche
         options = webdriver.ChromeOptions()
+        # Configurazioni specifiche per modalità headless
+        options.add_argument('--headless=new')  # Usa la nuova modalità headless
+        options.add_argument('--disable-blink-features=AutomationControlled')
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
         ##aggiunta per configurazione yaml
 
-        options.add_argument('--disable-notifications')  # Disabilita le notifiche del browser
-        options.add_argument('--no-sandbox')  # Necessario per alcuni ambienti di container
-        options.add_argument('--disable-dev-shm-usage')  # Per evitare errori di memoria in container
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--window-size=1920,1080')
+        options.add_argument('--start-maximized')
+        options.add_argument('--disable-notifications')
 
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
         # Avvia il browser
         self.driver = webdriver.Chrome(service=service, options=options)
 
+        # Modifica le proprietà del webdriver per evitare il rilevamento
+        self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
+        self.wait = WebDriverWait(self.driver, 20)
     def login(self):
-        """Effettua il login su Instagram"""
-        self.driver.get("https://www.instagram.com/accounts/login/")
-        time.sleep(2)
+        try:
+            # Carica la pagina di login
+            self.driver.get('https://www.instagram.com/accounts/login')
+            time.sleep(5)  # Attesa per il caricamento completo
 
-        # Trova i campi per il login
-        username_field = self.driver.find_element(By.NAME, "username")
-        password_field = self.driver.find_element(By.NAME, "password")
+            # Gestione dei cookie se necessario
+            try:
+                cookie_button = self.wait.until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Accept')]")))
+                cookie_button.click()
+                time.sleep(2)
+            except:
+                pass
 
-        # Inserisci le credenziali
-        username_field.send_keys(self.username)
-        password_field.send_keys(self.password)
+            # Login
+            username_input = self.wait.until(EC.presence_of_element_located((By.NAME, 'username')))
+            password_input = self.wait.until(EC.presence_of_element_located((By.NAME, 'password')))
 
-        # Premi il tasto Enter per fare login
-        password_field.send_keys(Keys.RETURN)
-        time.sleep(10)  # Attendi che la pagina carichi
+            # Simula input umano
+            for char in self.username:
+                username_input.send_keys(char)
+                time.sleep(0.1)
+            time.sleep(0.5)
+
+            for char in self.password:
+                password_input.send_keys(char)
+                time.sleep(0.1)
+
+            # Click sul pulsante di login
+            login_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type='submit']")))
+            self.driver.execute_script("arguments[0].click();", login_button)
+
+            time.sleep(10)  # Attesa per il completamento del login
+
+        except Exception as e:
+            print(f"Errore durante il login: {str(e)}")
+            self.driver.save_screenshot("login_error.png")
+            raise
 
     def publish_post(self, image_path, caption):
-        """Pubblica un post con l'immagine e la didascalia fornita"""
-        # Vai alla home per assicurarti di essere loggato
-        self.driver.get("https://www.instagram.com/")
-        time.sleep(5)
+        try:
+            self.driver.get('https://www.instagram.com')
+            time.sleep(5)
 
-        # Clicca sull'icona "+" per creare un nuovo post
-        upload_icon = self.driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]')
-        upload_icon.click()
-        time.sleep(2)
-        post_button = self.driver.find_element(By.XPATH, '//span[text()="Post"]')
-        post_button.click()
-        time.sleep(2)
-        # Usa JavaScript per rendere visibile l'input file nascosto
-        upload_input = self.driver.find_element(By.XPATH, '//input[@type="file"]')
-        self.driver.execute_script("arguments[0].style.display = 'block';", upload_input)
-        basepath= 'C:\\Vittoria\\Proposte\\it\\ig\\';
-        # Carica l'immagine
-        upload_input.send_keys(basepath+"final_design.png")
-        time.sleep(5)
+            # Click sull'icona per creare nuovo post
+            create_post_button = self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, "//span[contains(@class, 'x1lliihq')]//*[local-name()='svg' and @aria-label='New post']")))
+            self.driver.execute_script("arguments[0].click();", create_post_button)
+            time.sleep(3)
 
-        # Clicca su "Avanti"
-        next_button = self.driver.find_element(By.XPATH, '//div[text()="Next"]')
-        next_button.click()
-        time.sleep(3)
-        # Clicca su "Avanti"
-        next_button = self.driver.find_element(By.XPATH, '//div[text()="Next"]')
-        next_button.click()
-        time.sleep(5)
-        # Inserisci la didascalia
-        caption_field = self.driver.find_element(By.XPATH,'//div[@aria-label="Write a caption..." and @contenteditable="true"]')
-        caption_field.click()  # Clicca sul campo per attivarlo
+            # Seleziona tipo post
+            post_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Post']")))
+            self.driver.execute_script("arguments[0].click();", post_button)
+            time.sleep(3)
 
+            # Upload immagine
+            file_input = self.wait.until(EC.presence_of_element_located((By.XPATH, "//input[@type='file']")))
+            self.driver.execute_script("arguments[0].style.display = 'block';", file_input)
 
-        # Funzione per rimuovere caratteri non BMP
-        def remove_non_bmp_chars(text):
-            return re.sub(r'[^\u0000-\uFFFF]', '', text)
+            # Usa il percorso assoluto dell'immagine
+            absolute_path = os.path.abspath(image_path)
+            file_input.send_keys(absolute_path)
+            time.sleep(5)
 
+            # Click sui pulsanti Next
+            for _ in range(2):
+                next_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Next']")))
+                self.driver.execute_script("arguments[0].click();", next_button)
+                time.sleep(3)
 
+            # Inserisci caption
+            caption_input = self.wait.until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@aria-label='Write a caption...' and @contenteditable='true']")))
+            self.driver.execute_script("arguments[0].click();", caption_input)
 
-        # Rimuove i caratteri non BMP
-        safe_caption = remove_non_bmp_chars(caption)
-        caption_field.send_keys(safe_caption)
-        # Clicca su "Condividi"
-        share_button = self.driver.find_element(By.XPATH, '//div[text()="Share"]')
-        share_button.click()
-        time.sleep(5)  # Attendi che il post venga pubblicato
+            # Simula input umano per la caption
+            for char in caption:
+                caption_input.send_keys(char)
+                time.sleep(0.05)
+            time.sleep(2)
+
+            # Condividi post
+            share_button = self.wait.until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Share']")))
+            self.driver.execute_script("arguments[0].click();", share_button)
+            time.sleep(10)
+
+        except Exception as e:
+            print(f"Errore durante la pubblicazione: {str(e)}")
+            self.driver.save_screenshot("post_error.png")
+            raise
 
     def close_browser(self):
         """Chiudi il browser"""

@@ -16,7 +16,7 @@ class HashtagTextEnhancer:
         hashtags: list[str] = Field(description="Lista di hashtag popolari da aggiungere")
         title: str = Field(description="Titolo dell'articolo (max 10 caratteri)")
         subtitle: str = Field(description="Sottotitolo Breve dell'articolo (max 10 caratteri)")
-        description: str = Field(description="parole chiave per ricerca di un immagine max 3 parole")
+        description: str = Field(description="parole chiave per ricerca di un immagine max 3 parole che centrano con il calcio")
 
 
     def __init__(self, model_name="gpt-3.5-turbo", temperature=0.7):
@@ -30,7 +30,7 @@ class HashtagTextEnhancer:
                 "Riscrivi il seguente articolo per un post instagram cerca di essere piu discorsivo  "
                 "Poi, aggiungi gli hashtag più popolari e rilevanti.  "
                 "Poi, Scrivimi anche un titolo (max 20 caratteri) e sottotitolo (max 10 caratteri)."
-                "parole chiave per ricerca di un immagine max 3 parole"
+                "parole chiave per ricerca di un immagine max 3 parole che centrano con il calcio "
                 "Testo: {text}\n\n{format_instructions}"
             ),
             input_variables=["text"],
