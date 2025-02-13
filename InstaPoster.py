@@ -18,7 +18,7 @@ class InstagramBot:
         #rewritechromedriver path
         # Usa il percorso del chromedriver che hai impostato in GitHub Actions
         chromedriver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
-        service = Service(executable_path=self.chromedriver_path)
+        service = Service(executable_path=chromedriver_path)
 
         # Crea un oggetto ChromeOptions per impostazioni specifiche
         options = webdriver.ChromeOptions()
