@@ -25,9 +25,7 @@ class InstagramBot:
         # Crea un oggetto ChromeOptions per impostazioni specifiche
         options = webdriver.ChromeOptions()
         ##aggiunta per configurazione yaml
-        options.add_argument(f'--user-data-dir={user_data_dir}')
         options.add_argument('--disable-notifications')  # Disabilita le notifiche del browser
-        #options.add_argument('--headless')  # Esegui in modalità headless
         options.add_argument('--no-sandbox')  # Necessario per alcuni ambienti di container
         options.add_argument('--disable-dev-shm-usage')  # Per evitare errori di memoria in container
 
