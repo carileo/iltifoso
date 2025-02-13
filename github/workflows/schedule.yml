@@ -1,0 +1,37 @@
+name: Run Python Script Daily
+
+on:
+  schedule:
+    # Esegui alle 8:00 e 16:00 UTC ogni giorno
+    - cron: '0 8,18 * * *'
+  workflow_dispatch:  # Permette l'esecuzione manuale
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run script
+      run: python scraper.py
+      env:
+        # Aggiungi qui le tue variabili d'ambiente se necessarie
+        MONGO_URI: ${{ secrets.MONGO_URI }}
+        API_KEY: ${{ secrets.API_KEY }}
+        INSTA_USERNAME: ${{ secrets.INSTA_USERNAME }}
+        INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
+        OPENAIKEY: ${{ secrets.OPENAIKEY }}
+
+
+
