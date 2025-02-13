@@ -3,7 +3,7 @@ import requests
 from io import BytesIO
 
 class CanvaDesign:
-    def __init__(self, template_path, image_path, title, subtitle, font_path="LeagueGothic-Regular.ttf", font_size=80):
+    def __init__(self, template_path, image_path, title, subtitle, font_path="LeagueGothic-Regular.ttf", font_size=92):
         """
         Inizializza il design con template, immagine, titolo e sottotitolo.
         :param template_path: Percorso del template (PNG con trasparenza)
