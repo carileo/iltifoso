@@ -20,7 +20,7 @@ class HashtagTextEnhancer:
 
 
     def __init__(self, model_name="gpt-3.5-turbo", temperature=0.7):
-        load_dotenv()
+        #load_dotenv()
         api_key = os.getenv("OPENAIKEY")
         self.llm = ChatOpenAI(model=model_name, openai_api_key=api_key,temperature=temperature)
         self.parser = PydanticOutputParser(pydantic_object=self.TextOutput)
