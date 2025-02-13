@@ -49,6 +49,7 @@ jobs:
         INSTA_USERNAME: ${{ secrets.INSTA_USERNAME }}
         INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
         OPENAIKEY: ${{ secrets.OPENAIKEY }}
+        CHROMEDRIVER_PATH: "/usr/local/bin/chromedriver"
 
 
 

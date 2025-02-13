@@ -1,3 +1,4 @@
+import os
 import re
 
 from selenium import webdriver
@@ -14,6 +15,9 @@ class InstagramBot:
         self.password = password
 
         # Crea un oggetto Service con il percorso di ChromeDriver
+        #rewritechromedriver path
+        # Usa il percorso del chromedriver che hai impostato in GitHub Actions
+        chromedriver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
         service = Service(executable_path=self.chromedriver_path)
 
         # Crea un oggetto ChromeOptions per impostazioni specifiche
@@ -110,22 +114,6 @@ class InstagramPoster:
         self.bot.publish_post(self.image_path, self.caption)  # Pubblica il post
         self.bot.close_browser()  # Chiudi il browser
 
-def main():
-    # Configurazioni per il bot
-    poster = InstagramPoster(
-                    chromedriver_path="chromedriver-win32/chromedriver.exe",
-                    # Sostituisci con il tuo percorso di ChromeDriver
-                    username="iltifosobarese",
-                    password="Piccipallina1!",
-                    image_path="final_design.png",
-                    # Sostituisci con il percorso dell'immagine che vuoi caricare
-                    caption="test"
-                )
-
-                # Esegui il post
-    poster.post()
 
 
 
-if __name__ == "__main__":
-    main()
