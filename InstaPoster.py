@@ -17,12 +17,17 @@ class InstagramBot:
         # Crea un oggetto Service con il percorso di ChromeDriver
         #rewritechromedriver path
         # Usa il percorso del chromedriver che hai impostato in GitHub Actions
+
         chromedriver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
         service = Service(executable_path=chromedriver_path)
-
+        # Crea una directory temporanea per il profilo utente di Chrome
+        user_data_dir = os.path.join(os.getcwd(), 'chrome_user_data')  # Directory unica per il profilo utente
+        if not os.path.exists(user_data_dir):
+            os.makedirs(user_data_dir)  # Crea la directory se non esiste
         # Crea un oggetto ChromeOptions per impostazioni specifiche
         options = webdriver.ChromeOptions()
         ##aggiunta per configurazione yaml
+        options.add_argument('--user-data-dir=' + user_data_dir)
         options.add_argument('--disable-notifications')  # Disabilita le notifiche del browser
         #options.add_argument('--headless')  # Esegui in modalità headless
         options.add_argument('--no-sandbox')  # Necessario per alcuni ambienti di container
