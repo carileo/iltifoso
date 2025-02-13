@@ -17,7 +17,7 @@ from imageGeneratorFile import CanvaDesign
 
 # scraping logic
 # Funzione per estrarre il numero da un URL
-load_dotenv()
+#load_dotenv()
 
 # Recupera le credenziali dall'ambiente
 uri = os.getenv("MONGO_URI")
