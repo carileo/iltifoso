@@ -37,11 +37,11 @@ jobs:
     - name: Set up Xvfb (Virtual display) for Selenium
       run: |
         sudo apt-get install -y xvfb
-        Xvfb :99 -screen 0 1280x1024x24 &
+        Xvfb :99 -screen 0 1280x1024x24 -nolisten tcp &  # La flag '-nolisten tcp' evita i problemi di Xauthority
+        export DISPLAY=:99
 
     - name: Run script
       run: |
-        export DISPLAY=:99
         python scraper.py
       env:
         MONGO_URI: ${{ secrets.MONGO_URI }}
