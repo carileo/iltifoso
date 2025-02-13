@@ -1,15 +1,11 @@
 import os
 import re
-from telnetlib import EC
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 import time
-
-from selenium.webdriver.support.wait import WebDriverWait
-
 
 class InstagramBot:
     def __init__(self, chromedriver_path, username, password):
@@ -28,7 +24,7 @@ class InstagramBot:
         options = webdriver.ChromeOptions()
         ##aggiunta per configurazione yaml
         options.add_argument('--disable-notifications')  # Disabilita le notifiche del browser
-        options.add_argument('--headless')  # Esegui in modalità headless
+        #options.add_argument('--headless')  # Esegui in modalità headless
         options.add_argument('--no-sandbox')  # Necessario per alcuni ambienti di container
         options.add_argument('--disable-dev-shm-usage')  # Per evitare errori di memoria in container
 
@@ -56,17 +52,11 @@ class InstagramBot:
         """Pubblica un post con l'immagine e la didascalia fornita"""
         # Vai alla home per assicurarti di essere loggato
         self.driver.get("https://www.instagram.com/")
-        time.sleep(10)
-        try:
-            element = WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, 'svg[aria-label="New post"]'))
-            )
-            element.click()  # Interagisci con l'elemento
-        except Exception as e:
-            print("Elemento non trovato:", e)
+        time.sleep(5)
+
         # Clicca sull'icona "+" per creare un nuovo post
-        # upload_icon = self.driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]')
-        #upload_icon.click()
+        upload_icon = self.driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]')
+        upload_icon.click()
         time.sleep(2)
         post_button = self.driver.find_element(By.XPATH, '//span[text()="Post"]')
         post_button.click()
