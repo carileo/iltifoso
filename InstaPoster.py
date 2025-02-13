@@ -53,7 +53,7 @@ class InstagramBot:
         # Vai alla home per assicurarti di essere loggato
         self.driver.get("https://www.instagram.com/")
         time.sleep(10)
-
+        print(self.driver.page_source)
         # Clicca sull'icona "+" per creare un nuovo post
         upload_icon = self.driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]')
         upload_icon.click()
