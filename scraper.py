@@ -96,17 +96,16 @@ for href in hrefs:
                     caption=(f"{testo_migliorato.rewritten_text}\n\n"
                              f"{' '.join(testo_migliorato.hashtags)}\n\n")
                 )
-
+                #poster.Comment(testo_migliorato.hashtags)
                 # Esegui il post
                 poster.post()
 
-                # Specifica il percorso della foto e la didascalia
-                photo_path = "final_design.png"  # Modifica con il percorso corretto
-                caption = testo_migliorato.rewritten_text + " " + testo_migliorato.hastags
+
+
 
                 new_document = {"idArticle": max_number, "url": urlArticle}
                 doc_id = db_manager.insert_document(new_document)
-                print(f"Documento inserito con ID: {doc_id}")
+                #print(f"Documento inserito con ID: {doc_id}")
 
             else:
                 print("Nessuna immagine trovata.")
