@@ -57,7 +57,6 @@ jobs:
         INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
         OPENAIKEY: ${{ secrets.OPENAIKEY }}
         CHROMEDRIVER_PATH: "/usr/local/bin/chromedriver"
-        USER_DATA_DIR: $HOME/chrome_user_data_$GITHUB_RUN_ID  # Passa la directory unica di dati utente
 
 
 
