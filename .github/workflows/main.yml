@@ -34,6 +34,9 @@ jobs:
         sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
         sudo chmod +x /usr/local/bin/chromedriver
 
+    - name: Removing previous chrome instances on runner
+      run: sudo apt purge google-chrome-stable
+
     # Aggiungi questo passo per terminare eventuali processi di Chrome pre-esistenti
     - name: Kill any existing Chrome processes
       run: |
