@@ -47,7 +47,7 @@ class GoogleImageSearch:
         try:
             # Richiesta per scaricare l'immagine
             response = requests.get(image_url)
-            print("risposta immagine " + response.status_code)
+
             # Se la risposta è OK, salva l'immagine
             if response.status_code == 200:
                 with open(filename, 'wb') as file:

@@ -16,8 +16,12 @@ from imageGeneratorFile import CanvaDesign
 
 
 # scraping logic
-# Funzione per estrarre il numero da un URL
-#load_dotenv()
+# Verifica se sei in locale controllando se esiste il file .env
+if os.path.exists('.env'):
+    print("Ambiente locale rilevato: Caricamento delle variabili d'ambiente...")
+    load_dotenv()
+else:
+    print("Ambiente di produzione rilevato: Nessun caricamento di .env.")
 
 # Recupera le credenziali dall'ambiente
 uri = os.getenv("MONGO_URI")

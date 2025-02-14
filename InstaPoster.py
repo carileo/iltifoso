@@ -1,196 +1,161 @@
 import os
 import re
-import time
 import tempfile
-import shutil
+
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
+from selenium.webdriver.chrome.service import Service
+import time
 
-
-class InstagramBotHeadless:
-    def __init__(self, username, password):
+class InstagramBot:
+    def __init__(self, chromedriver_path, username, password):
+        """Inizializza il bot con il percorso di ChromeDriver, nome utente e password"""
+        self.chromedriver_path = chromedriver_path
         self.username = username
         self.password = password
-        self.driver = None
-        self.temp_dir = None
-        self.setup_driver()
+        if os.path.exists('.env'):
+            print("Ambiente locale rilevato: Caricamento delle variabili d'ambiente...")
+            # Crea un oggetto Service con il percorso di ChromeDriver
+            service = Service(executable_path=self.chromedriver_path)
 
-    def setup_driver(self):
-        """Configura il driver Chrome in modalità headless"""
-        try:
-            # Crea una directory temporanea per i dati utente
-            self.temp_dir = tempfile.mkdtemp()
+        else:
+            print("Ambiente di produzione rilevato: Nessun caricamento di .env.")
+            chromedriver_path = os.environ.get("CHROMEDRIVER_PATH", "/usr/local/bin/chromedriver")
+            service = Service(executable_path=chromedriver_path)
 
-            options = Options()
-            options.add_argument('--headless')  # Abilita modalità headless
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            options.add_argument(f'--user-data-dir={self.temp_dir}')
-            options.add_argument('--window-size=1920,1080')  # Importante per elementi visibili
-            options.add_argument('--disable-notifications')
-            options.add_argument('--disable-gpu')
-            options.add_argument('--disable-software-rasterizer')
 
-            # Aggiungi user agent mobile per migliore compatibilità
-            options.add_argument(
-                '--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 170.0.0.30.255 (iPhone13,2; iOS 14_0_1; en_US; en-US; scale=3.00; 1170x2532; 264572602)')
+        # Crea una directory temporanea unica per i dati utente
+        temp_dir = tempfile.mkdtemp()
 
-            # Disabilita la modalità di automazione
-            options.add_argument('--disable-blink-features=AutomationControlled')
-            options.add_experimental_option('excludeSwitches', ['enable-automation'])
-            options.add_experimental_option('useAutomationExtension', False)
 
-            service = Service()
-            self.driver = webdriver.Chrome(service=service, options=options)
-
-            # Maschera ancora meglio l'automazione
-            self.driver.execute_cdp_cmd('Network.setUserAgentOverride', {
-                "userAgent": 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 170.0.0.30.255'
-            })
-
-            # Maschera webdriver
-            self.driver.execute_script(
-                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-
-        except Exception as e:
-            print(f"Errore nella configurazione del driver: {e}")
-            self.cleanup()
-            raise
-
-    def wait_and_find_element(self, by, value, timeout=20):
-        """Attende e trova un elemento con gestione errori migliorata"""
-        try:
-            element = WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located((by, value))
-            )
-            return element
-        except TimeoutException:
-            print(f"Timeout nel trovare l'elemento: {value}")
-            # Salva screenshot per debug
-            self.driver.save_screenshot(f"error_screenshot_{int(time.time())}.png")
-            raise
-        except Exception as e:
-            print(f"Errore nel trovare l'elemento {value}: {e}")
-            raise
+        # Crea un oggetto ChromeOptions per impostazioni specifiche
+        options = webdriver.ChromeOptions()
+        # Aggiungi le opzioni necessarie
+        options.add_argument(f'--user-data-dir={temp_dir}')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--disable-notifications')  # Disabilita le notifiche del browser
+        # Se stai usando GitHub Actions, potresti voler aggiungere queste opzioni
+        options.add_argument('--window-size=1920,1080')
+        options.add_argument('--start-maximized')
+        # Avvia il browser
+        self.driver = webdriver.Chrome(service=service, options=options)
 
     def login(self):
         """Effettua il login su Instagram"""
-        try:
-            print("Inizializzazione login...")
-            self.driver.get("https://www.instagram.com/accounts/login/")
-            time.sleep(5)  # Attesa per caricamento pagina
+        self.driver.get("https://www.instagram.com/accounts/login/")
+        time.sleep(2)
 
-            # Login
-            username_field = self.wait_and_find_element(By.NAME, "username")
-            password_field = self.wait_and_find_element(By.NAME, "password")
+        # Trova i campi per il login
+        username_field = self.driver.find_element(By.NAME, "username")
+        password_field = self.driver.find_element(By.NAME, "password")
 
-            username_field.send_keys(self.username)
-            password_field.send_keys(self.password)
-            password_field.send_keys(Keys.RETURN)
+        # Inserisci le credenziali
+        username_field.send_keys(self.username)
+        password_field.send_keys(self.password)
 
-            # Attendi il completamento del login
-            time.sleep(8)
+        # Premi il tasto Enter per fare login
+        password_field.send_keys(Keys.RETURN)
+        time.sleep(10)  # Attendi che la pagina carichi
+    def Comment(self,has):
+        # Avvia il browser
 
-            # Verifica login
-            try:
-                self.wait_and_find_element(By.CSS_SELECTOR, "[aria-label='New post']", timeout=10)
-                print("Login completato con successo")
-            except Exception as e:
-                print("Possibile errore nel login, verifica le credenziali")
-                raise
+        search_box = self.driver.find_element(By.CSS_SELECTOR, "input[placeholder='Cerca']")
+        search_box.send_keys(f"#{has}")
+        time.sleep(2)
+        search_box.send_keys(Keys.ENTER)
+        time.sleep(1)
+        search_box.send_keys(Keys.ENTER)
 
-        except Exception as e:
-            print(f"Errore durante il login: {e}")
-            self.driver.save_screenshot(f"login_error_{int(time.time())}.png")
-            raise
+        # Attendi il caricamento della pagina dei risultati
+        time.sleep(5)
 
-    def publish_post(self, image_path, caption):
-        """Pubblica un post su Instagram"""
-        try:
-            print("Inizio processo di pubblicazione...")
-
-            # Verifica che il file esista
-            if not os.path.exists(image_path):
-                raise FileNotFoundError(f"Immagine non trovata: {image_path}")
-
-            # Vai alla home di Instagram
-            self.driver.get("https://www.instagram.com")
-            time.sleep(5)
-
-            # Trova e clicca il pulsante nuovo post
-            new_post_button = self.wait_and_find_element(
-                By.CSS_SELECTOR, "[aria-label='New post']")
-            new_post_button.click()
-            time.sleep(3)
-
-            # Carica l'immagine
-            file_input = self.wait_and_find_element(By.CSS_SELECTOR, "input[type='file']")
-            file_input.send_keys(os.path.abspath(image_path))
-            time.sleep(5)
-
-            # Clicca i pulsanti Next
-            for _ in range(2):
-                next_button = self.wait_and_find_element(By.XPATH, "//button[text()='Next']")
-                next_button.click()
-                time.sleep(3)
-
-            # Inserisci la caption
-            caption_field = self.wait_and_find_element(
-                By.CSS_SELECTOR, "[aria-label='Write a caption...']")
-            caption_field.send_keys(caption)
+        # Scorri la pagina per caricare più post
+        for _ in range(3):  # Modifica il numero di scroll per caricare più post
+            ActionChains(self.driver).send_keys(Keys.PAGE_DOWN).perform()
             time.sleep(2)
 
-            # Pubblica
-            share_button = self.wait_and_find_element(By.XPATH, "//button[text()='Share']")
-            share_button.click()
+        # Raccogli i link ai post
+        post_links = self.driver.find_elements(By.CSS_SELECTOR, "a")
+        links = [link.get_attribute("href") for link in post_links if "/p/" in link.get_attribute("href")]
 
-            # Attendi il completamento
-            time.sleep(10)
-            print("Post pubblicato con successo")
+        # Stampa i link trovati
+        print(f"Link ai post trovati con l'hashtag #{has}:")
+        for link in links:
+            print(link)
 
-        except Exception as e:
-            print(f"Errore durante la pubblicazione: {e}")
-            self.driver.save_screenshot(f"publish_error_{int(time.time())}.png")
-            raise
+    def publish_post(self, image_path, caption):
+        """Pubblica un post con l'immagine e la didascalia fornita"""
+        # Vai alla home per assicurarti di essere loggato
+        self.driver.get("https://www.instagram.com/")
+        time.sleep(5)
 
-    def cleanup(self):
-        """Pulisce le risorse"""
-        try:
-            if self.driver:
-                self.driver.quit()
-            if self.temp_dir and os.path.exists(self.temp_dir):
-                shutil.rmtree(self.temp_dir, ignore_errors=True)
-        except Exception as e:
-            print(f"Errore durante la pulizia: {e}")
+        # Clicca sull'icona "+" per creare un nuovo post
+        upload_icon = self.driver.find_element(By.CSS_SELECTOR, 'svg[aria-label="New post"]')
+        upload_icon.click()
+        time.sleep(2)
+        post_button = self.driver.find_element(By.XPATH, '//span[text()="Post"]')
+        post_button.click()
+        time.sleep(2)
+        # Usa JavaScript per rendere visibile l'input file nascosto
+        upload_input = self.driver.find_element(By.XPATH, '//input[@type="file"]')
+        self.driver.execute_script("arguments[0].style.display = 'block';", upload_input)
+        basepath= 'C:\\Vittoria\\Proposte\\it\\ig\\';
+        # Carica l'immagine
+        upload_input.send_keys(basepath+"final_design.png")
+        time.sleep(5)
+
+        # Clicca su "Avanti"
+        next_button = self.driver.find_element(By.XPATH, '//div[text()="Next"]')
+        next_button.click()
+        time.sleep(3)
+        # Clicca su "Avanti"
+        next_button = self.driver.find_element(By.XPATH, '//div[text()="Next"]')
+        next_button.click()
+        time.sleep(5)
+        # Inserisci la didascalia
+        caption_field = self.driver.find_element(By.XPATH,'//div[@aria-label="Write a caption..." and @contenteditable="true"]')
+        caption_field.click()  # Clicca sul campo per attivarlo
 
 
-def post_to_instagram(username, password, image_path, caption):
-    """Funzione wrapper per pubblicare su Instagram"""
-    bot = None
-    try:
-        bot = InstagramBotHeadless(username, password)
-        bot.login()
-        bot.publish_post(image_path, caption)
-        print("Processo completato con successo")
-    except Exception as e:
-        print(f"Errore durante il processo: {e}")
-        raise
-    finally:
-        if bot:
-            bot.cleanup()
+        # Funzione per rimuovere caratteri non BMP
+        def remove_non_bmp_chars(text):
+            return re.sub(r'[^\u0000-\uFFFF]', '', text)
 
 
-# Esempio di utilizzo
-if __name__ == "__main__":
-    username = os.environ.get("INSTAGRAM_USERNAME")
-    password = os.environ.get("INSTAGRAM_PASSWORD")
-    image_path = "path/to/your/image.jpg"
-    caption = "Your caption here #instagram #post"
 
-    post_to_instagram(username, password, image_path, caption)
+        # Rimuove i caratteri non BMP
+        safe_caption = remove_non_bmp_chars(caption)
+        caption_field.send_keys(safe_caption)
+        # Clicca su "Condividi"
+        share_button = self.driver.find_element(By.XPATH, '//div[text()="Share"]')
+        share_button.click()
+        time.sleep(5)  # Attendi che il post venga pubblicato
+
+    def close_browser(self):
+        """Chiudi il browser"""
+        self.driver.quit()
+
+
+# Classe per inviare un post
+class InstagramPoster:
+    def __init__(self, chromedriver_path, username, password, image_path, caption):
+        self.bot = InstagramBot(chromedriver_path, username, password)
+        self.image_path = image_path
+        self.caption = caption
+
+    def post(self):
+        """Effettua il login e pubblica il post"""
+        self.bot.login()  # Esegui il login
+        self.bot.publish_post(self.image_path, self.caption)  # Pubblica il post
+        self.bot.close_browser()  # Chiudi il browser
+
+    def Comment(self,hast):
+        """Effettua il login e pubblica il post"""
+        self.bot.login()  # Esegui il login
+        self.bot.Comment(hast)  # Pubblica il post
+        self.bot.close_browser()  # Chiudi il browser
+
