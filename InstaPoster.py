@@ -1,5 +1,6 @@
 import os
 import re
+import tempfile
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -18,11 +19,21 @@ class InstagramBot:
         service = Service(executable_path=chromedriver_path)
         # Crea un oggetto Service con il percorso di ChromeDriver
         #service = Service(executable_path=self.chromedriver_path)
+        # Crea una directory temporanea unica per i dati utente
+        temp_dir = tempfile.mkdtemp()
+
 
         # Crea un oggetto ChromeOptions per impostazioni specifiche
         options = webdriver.ChromeOptions()
+        # Aggiungi le opzioni necessarie
+        options.add_argument(f'--user-data-dir={temp_dir}')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
         options.add_argument('--disable-notifications')  # Disabilita le notifiche del browser
-
+        # Se stai usando GitHub Actions, potresti voler aggiungere queste opzioni
+        options.add_argument('--window-size=1920,1080')
+        options.add_argument('--start-maximized')
         # Avvia il browser
         self.driver = webdriver.Chrome(service=service, options=options)
 
